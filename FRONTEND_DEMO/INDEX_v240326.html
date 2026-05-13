@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Triage ESI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',sans-serif;background:#0F172A;color:#E2E8F0}
+.screen-select{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F172A,#1E293B,#0F172A)}
+.select-container{text-align:center}.select-container h1{font-size:42px;font-weight:900;color:white;margin-bottom:8px}
+.select-container p{font-size:17px;color:#94A3B8;margin-bottom:48px}.select-buttons{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.select-btn{padding:32px 40px;border:none;border-radius:20px;cursor:pointer;min-width:240px;text-align:center;transition:transform .2s}
+.select-btn:hover{transform:translateY(-4px)}.select-btn .icon{font-size:42px;margin-bottom:10px}
+.select-btn .title{font-size:20px;font-weight:700;color:white}.select-btn .sub{font-size:14px;margin-top:6px;opacity:.8}
+.btn-patient{background:linear-gradient(135deg,#3B82F6,#1D4ED8);box-shadow:0 8px 32px rgba(59,130,246,.3)}
+.btn-nurse{background:linear-gradient(135deg,#059669,#047857);box-shadow:0 8px 32px rgba(5,150,105,.3)}
+.btn-patient .sub{color:#BFDBFE}.btn-nurse .sub{color:#A7F3D0}
+.screen-patient{min-height:100vh;background:linear-gradient(135deg,#EFF6FF,#DBEAFE);display:flex;flex-direction:column}
+.patient-header{background:white;padding:14px 24px;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;gap:12px}
+.patient-header .logo{font-size:28px}.patient-header .text{font-size:17px;font-weight:700;color:#1E3A5F}
+.patient-body{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.form-card{background:white;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.08);max-width:520px;width:100%}
+.progress-bar{padding:20px 28px 0;display:flex;gap:6px}.progress-dot{flex:1;height:4px;border-radius:2px;background:#E5E7EB;transition:background .3s}
+.progress-dot.active{background:#3B82F6}.form-content{padding:24px 28px 28px;color:#1F2937}
+.form-content h2{font-size:22px;font-weight:700;color:#1E3A5F;margin-bottom:4px}
+.form-content .step-info{font-size:13px;color:#9CA3AF;margin-bottom:24px}
+.form-label{display:block;font-size:14px;font-weight:600;color:#374151;margin-bottom:8px}
+.form-sublabel{display:block;font-size:12px;color:#9CA3AF;margin-bottom:8px;font-weight:400}
+.form-input{width:100%;padding:14px 16px;border:2px solid #E5E7EB;border-radius:12px;font-size:16px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:#3B82F6}.form-textarea{resize:vertical;line-height:1.6;min-height:80px}
+.form-textarea-large{min-height:100px}
+.form-row{display:flex;gap:12px;margin-bottom:16px}.form-row>div{flex:1}
+.option-card{display:block;width:100%;padding:14px 18px;margin-bottom:8px;background:white;border:2px solid #E5E7EB;border-radius:14px;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;font-size:15px;color:#1F2937;transition:all .2s}
+.option-card:hover{border-color:#93C5FD}.option-card.selected{border-color:#3B82F6;background:#EFF6FF;font-weight:600}
+.sex-btn{flex:1;padding:14px;border:2px solid #E5E7EB;border-radius:12px;background:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;color:#1F2937;transition:all .2s}
+.sex-btn.selected{border-color:#3B82F6;background:#EFF6FF;font-weight:600}
+.form-nav{display:flex;gap:12px;margin-top:24px}
+.btn-back{padding:14px 24px;background:#F3F4F6;color:#374151;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-next{flex:1;padding:14px 24px;background:#3B82F6;color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-next:disabled{background:#D1D5DB;cursor:default}
+.pain-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:8px}
+.pain-btn{padding:12px 4px;border:2px solid #E5E7EB;border-radius:12px;background:white;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700;color:#1F2937;transition:all .2s;line-height:1}
+.pain-btn:hover{border-color:#93C5FD}
+.pain-btn.selected{border-color:#3B82F6;background:#EFF6FF;color:#3B82F6}
+.pain-btn .pain-label{font-size:10px;font-weight:500;color:#9CA3AF;margin-top:3px;display:block}
+.pain-btn.selected .pain-label{color:#3B82F6}
+.pain-btn[data-v="0"],.pain-btn[data-v="1"]{border-color:#D1FAE5}.pain-btn[data-v="0"].selected,.pain-btn[data-v="1"].selected{background:#ECFDF5;border-color:#059669;color:#059669}
+.pain-btn[data-v="2"],.pain-btn[data-v="3"]{border-color:#FEF3C7}.pain-btn[data-v="2"].selected,.pain-btn[data-v="3"].selected{background:#FFFBEB;border-color:#D97706;color:#D97706}
+.pain-btn[data-v="4"],.pain-btn[data-v="5"]{border-color:#FED7AA}.pain-btn[data-v="4"].selected,.pain-btn[data-v="5"].selected{background:#FFF7ED;border-color:#EA580C;color:#EA580C}
+.pain-btn[data-v="6"],.pain-btn[data-v="7"]{border-color:#FECACA}.pain-btn[data-v="6"].selected,.pain-btn[data-v="7"].selected{background:#FEF2F2;border-color:#DC2626;color:#DC2626}
+.pain-btn[data-v="8"],.pain-btn[data-v="9"],.pain-btn[data-v="10"]{border-color:#FECACA}.pain-btn[data-v="8"].selected,.pain-btn[data-v="9"].selected,.pain-btn[data-v="10"].selected{background:#FEF2F2;border-color:#991B1B;color:#991B1B}
+.pain-btn.selected .pain-label{color:inherit}
+.screen-success{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ECFDF5,#D1FAE5)}
+.success-card{text-align:center;padding:60px 40px;background:white;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.08);max-width:480px}
+.success-card .icon{font-size:64px;margin-bottom:16px}.success-card h2{font-size:28px;font-weight:700;color:#065F46;margin-bottom:12px}
+.success-card p{font-size:16px;color:#6B7280;line-height:1.6;margin-bottom:32px}
+.btn-new{padding:14px 32px;background:#059669;color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.screen-nurse{min-height:100vh;background:#0F172A}
+.nurse-header{background:#1E293B;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155}
+.nurse-header-left{display:flex;align-items:center;gap:12px}
+.nurse-header .title{font-size:20px;font-weight:700;color:white}.nurse-header .subtitle{font-size:13px;color:#94A3B8}
+.btn-switch{padding:8px 16px;background:#334155;color:#CBD5E1;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.patient-list{padding:16px 28px;max-width:1200px;margin:0 auto}
+.patient-card{background:#1E293B;border-radius:16px;margin-bottom:10px;border:1px solid #334155;overflow:hidden;transition:all .2s}
+.patient-card:hover{border-color:#475569}
+.card-row{padding:18px 24px;display:flex;align-items:center;gap:20px;cursor:pointer}
+.pos-badge{width:36px;height:36px;border-radius:50%;background:#0F172A;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#94A3B8;flex-shrink:0}
+.esi-badge{width:64px;height:64px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.esi-badge .esi-text{font-size:11px;font-weight:800;line-height:1;opacity:.9}.esi-badge .esi-num{font-size:28px;font-weight:900;line-height:1}
+.card-info{flex:1;min-width:0}
+.card-name{font-size:15px;font-weight:700;color:#F1F5F9;margin-bottom:2px}
+.card-name .card-demo{font-size:13px;font-weight:500;color:#64748B;margin-left:8px}
+.card-symptoms{font-size:20px;font-weight:700;color:#F8FAFC;margin-top:4px;letter-spacing:-.3px}
+.card-desc{font-size:13px;color:#64748B;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-score{text-align:center;flex-shrink:0;min-width:70px}
+.card-score .score-val{font-size:22px;font-weight:800}.card-score .score-label{font-size:10px;color:#64748B;text-transform:uppercase}
+.card-vitals{display:flex;gap:10px;flex-shrink:0}
+.vital-pill{padding:5px 10px;border-radius:8px;background:#0F172A;text-align:center;min-width:50px}
+.vital-label{font-size:9px;color:#64748B;font-weight:600;text-transform:uppercase}.vital-value{font-size:16px;font-weight:800;color:#E2E8F0}
+.vital-value.high{color:#F87171}.vital-value.medium{color:#FBBF24}
+.card-arrow{font-size:18px;color:#475569;flex-shrink:0}
+.card-details{padding:0 24px 20px;border-top:1px solid #334155}
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.detail-section-title{font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.detail-box{background:#0F172A;border-radius:12px;padding:14px}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;font-size:13px;gap:8px}
+.detail-label{color:#64748B;font-weight:500}.detail-value{color:#E2E8F0;font-weight:500;text-align:right}
+.prob-bar-container{margin-top:8px}.prob-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:12px}
+.prob-label{width:36px;color:#64748B}.prob-track{flex:1;height:6px;background:#334155;border-radius:3px;overflow:hidden}
+.prob-fill{height:100%;border-radius:3px;transition:width .5s}.prob-pct{width:36px;text-align:right;color:#94A3B8}
+.desc-box{margin-top:14px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:10px 14px;font-size:13px;color:#FCD34D;line-height:1.5}
+.desc-box-blue{margin-top:10px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.15);border-radius:10px;padding:10px 14px;font-size:13px;color:#93C5FD;line-height:1.5}
+.desc-box-green{margin-top:10px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:10px 14px;font-size:13px;color:#4ADE80;line-height:1.5}
+.btn-attended{padding:12px 28px;background:#059669;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:14px;float:right;transition:background .2s}
+.btn-attended:hover{background:#047857}
+.empty-state{text-align:center;padding:80px 20px;color:#64748B}.empty-state .icon{font-size:56px;margin-bottom:12px}
+.esi-1{background:rgba(220,38,38,.15);border:2px solid rgba(220,38,38,.3)}.esi-1 .esi-text,.esi-1 .esi-num{color:#F87171}
+.esi-2{background:rgba(234,88,12,.15);border:2px solid rgba(234,88,12,.3)}.esi-2 .esi-text,.esi-2 .esi-num{color:#FB923C}
+.esi-3{background:rgba(202,138,4,.15);border:2px solid rgba(202,138,4,.3)}.esi-3 .esi-text,.esi-3 .esi-num{color:#FBBF24}
+.esi-4{background:rgba(22,163,74,.15);border:2px solid rgba(22,163,4,.3)}.esi-4 .esi-text,.esi-4 .esi-num{color:#4ADE80}
+.esi-5{background:rgba(37,99,235,.15);border:2px solid rgba(37,99,235,.3)}.esi-5 .esi-text,.esi-5 .esi-num{color:#60A5FA}
+.esi-badge.esi-uncertain{width:80px;position:relative;border-style:dashed}
+.esi-badge.esi-uncertain .esi-num{font-size:22px;letter-spacing:1px}
+.esi-badge.esi-uncertain::after{content:"?";position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#FBBF24;color:#0F172A;border-radius:50%;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;line-height:1}
+.uncertainty-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(251,191,36,.12);color:#FBBF24;border:1px solid rgba(251,191,36,.25);margin-left:8px;letter-spacing:.3px}
+.conf-1{color:#F87171}.conf-2{color:#FB923C}.conf-3{color:#FBBF24}.conf-4{color:#4ADE80}.conf-5{color:#60A5FA}
+.esi-color-1{background:#F87171}.esi-color-2{background:#FB923C}.esi-color-3{background:#FBBF24}.esi-color-4{background:#4ADE80}.esi-color-5{background:#60A5FA}
+.score-1{color:#F87171}.score-2{color:#FB923C}.score-3{color:#FBBF24}.score-4{color:#4ADE80}.score-5{color:#60A5FA}
+.optional-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#F3F4F6;color:#9CA3AF;margin-left:6px}
+.umls-container{position:relative}
+.umls-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:0}
+.umls-tag{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:#EFF6FF;border:1.5px solid #3B82F6;border-radius:10px;font-size:14px;font-weight:600;color:#1D4ED8}
+.umls-tag .tag-remove{cursor:pointer;font-size:16px;color:#93C5FD;font-weight:400;margin-left:2px;line-height:1}
+.umls-tag .tag-remove:hover{color:#DC2626}
+.umls-suggestions{position:absolute;left:0;right:0;top:100%;background:white;border:2px solid #E5E7EB;border-top:none;border-radius:0 0 12px 12px;max-height:240px;overflow-y:auto;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.12);display:none}
+.umls-suggestions.visible{display:block}
+.umls-suggestion{padding:12px 16px;cursor:pointer;font-size:14px;color:#1F2937;border-bottom:1px solid #F3F4F6;transition:background .15s}
+.umls-suggestion:hover{background:#EFF6FF}
+.umls-suggestion .sug-name{font-weight:600}
+.umls-suggestion .sug-type{font-size:11px;color:#9CA3AF;margin-left:8px}
+.umls-suggestion .sug-score{float:right;font-size:11px;color:#93C5FD;font-weight:500}
+.umls-loading{padding:12px 16px;font-size:13px;color:#9CA3AF;text-align:center}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const API_URL = window.location.origin;
+const ESI = {1:{desc:"Resuscitation",time:"Immediate",icon:"🔴"},2:{desc:"Emergency",time:"≤10 min",icon:"🟠"},3:{desc:"Urgent",time:"≤60 min",icon:"🟡"},4:{desc:"Less urgent",time:"≤120 min",icon:"🟢"},5:{desc:"Non-urgent",time:"≤240 min",icon:"🔵"}};
+const TEMP_L = {1:"Normal",2:"Normal-warm",3:"Low fever",4:"Fever",5:"High fever"};
+const HR_L = {1:"Normal",2:"Slightly fast",3:"Fast",4:"Very fast",5:"Racing"};
+const RR_L = {1:"Normal",2:"Slightly difficult",3:"Difficult",4:"Very difficult",5:"Extremely difficult"};
+
+let state = {view:'select',patients:[],formStep:0,formData:{nombre:'',edad:'',sexo:'',brief_cc:'',full_text:'',pain:null,temperature:null,heartrate:null,resprate:null},loading:false,expandedId:null,filter:0,polling:null,umlsTags:[],umlsSuggestions:[],umlsLoading:false,umlsQuery:'',freeTextMode:false,freetext_cc:''};
+
+function scoreColor(s){if(s<2)return'score-1';if(s<2.5)return'score-2';if(s<3.2)return'score-3';if(s<4)return'score-4';return'score-5'}
+
+function saveCurrentInputs(){
+  var el;
+  el=document.getElementById('f-nombre');if(el)state.formData.nombre=el.value;
+  el=document.getElementById('f-edad');if(el)state.formData.edad=el.value;
+  el=document.getElementById('f-umls-search');if(el)state.umlsQuery=el.value;
+  el=document.getElementById('f-freetext-cc');if(el)state.freetext_cc=el.value;
+  el=document.getElementById('f-full-text');if(el)state.formData.full_text=el.value;
+}
+
+function render(){
+  saveCurrentInputs();
+  const app=document.getElementById('app');
+  if(state.view==='select')app.innerHTML=renderSelect();
+  else if(state.view==='patient')app.innerHTML=renderPatient();
+  else if(state.view==='success')app.innerHTML=renderSuccess();
+  else if(state.view==='nurse')app.innerHTML=renderNurse();
+  setTimeout(bindEvents,0);
+}
+
+function renderSelect(){
+  return '<div class="screen-select"><div class="select-container">'+
+    '<div style="font-size:56px;margin-bottom:16px">🏥</div>'+
+    '<h1>Pre-Triage ESI</h1>'+
+    '<p>AI-powered emergency department triage system</p>'+
+    '<div class="select-buttons">'+
+      '<button class="select-btn btn-patient" onclick="goTo(\'patient\')"><div class="icon">👤</div><div class="title">I\'m a Patient</div><div class="sub">Describe my symptoms</div></button>'+
+      '<button class="select-btn btn-nurse" onclick="goTo(\'nurse\')"><div class="icon">🩺</div><div class="title">I\'m a Nurse</div><div class="sub">View patient queue</div></button>'+
+    '</div></div></div>';
+}
+
+function renderPatient(){
+  var s=state.formStep, d=state.formData;
+  var steps=['Personal info','Main problem','More details','Pain level','Temperature','Heart rate','Breathing'];
+  var dots=steps.map(function(_,i){return '<div class="progress-dot '+(i<=s?'active':'')+'"></div>'}).join('');
+  var content='';
+  if(s===0){
+    content='<div style="margin-bottom:16px"><label class="form-label">Full name</label><input class="form-input" id="f-nombre" value="'+d.nombre+'" placeholder="Full name"></div>'+
+      '<div class="form-row"><div><label class="form-label">Age</label><input type="number" class="form-input" id="f-edad" value="'+d.edad+'" placeholder="Years" min="0" max="120"></div>'+
+      '<div><label class="form-label">Sex</label><div style="display:flex;gap:8px">'+
+        '<button class="sex-btn '+(d.sexo==='M'?'selected':'')+'" onclick="setField(\'sexo\',\'M\')">Male</button>'+
+        '<button class="sex-btn '+(d.sexo==='F'?'selected':'')+'" onclick="setField(\'sexo\',\'F\')">Female</button>'+
+      '</div></div></div>';
+  } else if(s===1){
+    if(state.freeTextMode){
+      // FREE TEXT MODE — NER will process this
+      content='<label class="form-label">Describe your symptoms in your own words</label>'+
+        '<span class="form-sublabel">Tell us everything — what hurts, when it started, how you feel</span>'+
+        '<textarea class="form-input form-textarea form-textarea-large" id="f-freetext-cc" placeholder="E.g.: I woke up with a terrible pain in my chest and I was sweating and couldn\'t catch my breath, it started about an hour ago...">'+state.freetext_cc+'</textarea>'+
+        '<div style="margin-top:10px;text-align:center"><button onclick="toggleFreeText()" style="background:none;border:none;color:#3B82F6;font-size:13px;cursor:pointer;font-family:\'DM Sans\',sans-serif;text-decoration:underline">← Back to symptom search</button></div>';
+    } else {
+      // UMLS AUTOCOMPLETE MODE
+      var tags=state.umlsTags.map(function(t,i){return '<span class="umls-tag">'+t+'<span class="tag-remove" onclick="removeTag('+i+')">✕</span></span>'}).join('');
+      var sugList='';
+      if(state.umlsLoading){sugList='<div class="umls-loading">Searching UMLS...</div>'}
+      else if(state.umlsSuggestions.length>0){
+        sugList=state.umlsSuggestions.map(function(sg,i){
+          var typeShort=sg.semantic_type.replace('Sign or Symptom','Symptom').replace('Disease or Syndrome','Disease').replace('Injury or Poisoning','Injury').replace('Mental or Behavioral Dysfunction','Mental');
+          return '<div class="umls-suggestion" onclick="selectSuggestion('+i+')"><span class="sug-name">'+sg.display_name+'</span><span class="sug-type">'+typeShort+'</span><span class="sug-score">'+Math.round(sg.score*100)+'%</span></div>'
+        }).join('');
+      }
+      var hasInput=state.umlsQuery.length>=2;
+      content='<label class="form-label">What symptoms or problems bring you here?</label>'+
+        '<span class="form-sublabel">Type to search medical terms — select from suggestions below</span>'+
+        (state.umlsTags.length>0?'<div class="umls-tags">'+tags+'</div>':'')+
+        '<div class="umls-container">'+
+          '<input class="form-input" id="f-umls-search" value="'+state.umlsQuery+'" placeholder="e.g. chest pain, headache, difficulty breathing..." autocomplete="off">'+
+          '<div class="umls-suggestions '+(hasInput&&(state.umlsSuggestions.length>0||state.umlsLoading)?'visible':'')+'">'+sugList+'</div>'+
+        '</div>'+
+        '<div style="margin-top:10px;text-align:center"><button onclick="toggleFreeText()" style="background:none;border:none;color:#3B82F6;font-size:13px;cursor:pointer;font-family:\'DM Sans\',sans-serif;text-decoration:underline">Can\'t find your symptom? Describe it in your own words →</button></div>';
+    }
+  } else if(s===2){
+    content='<label class="form-label">Want to tell us more? <span class="optional-tag">Optional</span></label>'+
+      '<span class="form-sublabel">Describe what happened, when it started, or anything else you think is important</span>'+
+      '<textarea class="form-input form-textarea form-textarea-large" id="f-full-text" placeholder="E.g.: I\'ve had this pain since yesterday, it gets worse when I breathe, I also feel dizzy...">'+d.full_text+'</textarea>';
+  } else if(s===3){
+    var painLabels={0:'None',1:'',2:'Mild',3:'',4:'Moderate',5:'',6:'Intense',7:'',8:'Severe',9:'',10:'Worst'};
+    content='<p style="font-size:14px;color:#6B7280;margin-bottom:14px">Rate your pain on a scale from 0 to 10:</p><div class="pain-grid">';
+    for(var v=0;v<=10;v++){
+      content+='<button class="pain-btn '+(d.pain===v?'selected':'')+'" data-v="'+v+'" onclick="setField(\'pain\','+v+')">'+v+(painLabels[v]?'<span class="pain-label">'+painLabels[v]+'</span>':'')+'</button>';
+    }
+    content+='</div>';
+  } else if(s===4){
+    var opts=[[1,'Normal temperature','I feel fine, no fever'],[2,'Slightly warm','I feel a little warm but not sure if fever'],[3,'Low fever','Mild fever, slightly above normal'],[4,'Fever','Clearly feverish, warm to touch'],[5,'High fever','Burning up, very hot']];
+    content=opts.map(function(o){return '<button class="option-card '+(d.temperature===o[0]?'selected':'')+'" onclick="setField(\'temperature\','+o[0]+')"><strong>'+o[1]+'</strong><br><span style="font-size:13px;color:#6B7280">'+o[2]+'</span></button>'}).join('');
+  } else if(s===5){
+    var opts=[[1,'Normal','Calm, resting heart rate'],[2,'Slightly fast','A bit faster than normal'],[3,'Fast','Noticeably beating fast'],[4,'Very fast','Heart is pounding hard'],[5,'Racing','Extremely fast, feels out of control']];
+    content=opts.map(function(o){return '<button class="option-card '+(d.heartrate===o[0]?'selected':'')+'" onclick="setField(\'heartrate\','+o[0]+')"><strong>'+o[1]+'</strong><br><span style="font-size:13px;color:#6B7280">'+o[2]+'</span></button>'}).join('');
+  } else if(s===6){
+    var opts=[[1,'Normal','Breathing fine, no difficulty'],[2,'Slightly difficult','A little harder to breathe than usual'],[3,'Difficult','Noticeable effort to breathe'],[4,'Very difficult','Struggling to get enough air'],[5,'Extremely difficult','Can barely breathe, gasping']];
+    content=opts.map(function(o){return '<button class="option-card '+(d.resprate===o[0]?'selected':'')+'" onclick="setField(\'resprate\','+o[0]+')"><strong>'+o[1]+'</strong><br><span style="font-size:13px;color:#6B7280">'+o[2]+'</span></button>'}).join('');
+  }
+  var canNext=(s===0&&d.nombre&&d.edad&&d.sexo)||(s===1&&(state.umlsTags.length>0||d.brief_cc.length>=3||(state.freeTextMode&&state.freetext_cc.length>=5)))||(s===2)||(s===3&&d.pain!==null)||(s===4&&d.temperature!==null)||(s===5&&d.heartrate!==null)||(s===6&&d.resprate!==null);
+  var totalSteps=steps.length;
+  var isLast=s>=totalSteps-1;
+  return '<div class="screen-patient">'+
+    '<div class="patient-header"><span class="logo">🏥</span><div><div class="text">Pre-Triage System</div><div style="font-size:12px;color:#6B7280">Patient screen</div></div></div>'+
+    '<div class="patient-body"><div class="form-card"><div class="progress-bar">'+dots+'</div><div class="form-content">'+
+      '<h2>'+steps[s]+'</h2><p class="step-info">Step '+(s+1)+' of '+totalSteps+'</p>'+content+
+      '<div class="form-nav">'+(s>0?'<button class="btn-back" onclick="prevStep()">← Back</button>':'')+
+        '<button class="btn-next" '+((!canNext||state.loading)?'disabled':'')+' onclick="'+(isLast?'submitForm()':'nextStep()')+'">'+(state.loading?'Sending...':(isLast?'Submit':'Next →'))+'</button>'+
+      '</div></div></div></div></div>';
+}
+
+function renderSuccess(){
+  return '<div class="screen-success"><div class="success-card">'+
+    '<div class="icon">✅</div><h2>Data Received</h2>'+
+    '<p>Thank you, '+state.formData.nombre+'. Your information has been sent to the medical team. You will be seen in order of priority.</p>'+
+    '<button class="btn-new" onclick="resetForm()">New patient</button></div></div>';
+}
+
+function renderNurse(){
+  var sorted=state.patients.slice().sort(function(a,b){return (a.result.urgency_score||5)-(b.result.urgency_score||5)});
+  var filtered=state.filter===0?sorted:sorted.filter(function(p){return p.result.esi_level===state.filter});
+
+  var cards='';
+  if(filtered.length===0){
+    cards='<div class="empty-state"><div class="icon">📋</div><div style="font-size:18px">No patients '+(state.filter>0?'with ESI '+state.filter:'waiting')+'</div></div>';
+  } else {
+    cards=filtered.map(function(p,idx){
+      var e=p.result.esi_level, sc=p.result.urgency_score||3;
+      var e2=p.result.esi_secondary||null;
+      var isUncertain=e2!==null;
+      var isExp=state.expandedId===p.id;
+      var painClass=p.data.pain>=7?'high':p.data.pain>=4?'medium':'';
+      var hrClass=p.data.heartrate>=4?'high':p.data.heartrate>=3?'medium':'';
+      var rrClass=p.data.resprate>=4?'high':p.data.resprate>=3?'medium':'';
+
+      var badgeEsi=e;
+      var badgeNum, badgeClass;
+      if(isUncertain){
+        var lo=Math.min(e,e2), hi=Math.max(e,e2);
+        badgeNum=lo+'-'+hi;
+        badgeClass='esi-badge esi-'+lo+' esi-uncertain';
+      } else {
+        badgeNum=''+e;
+        badgeClass='esi-badge esi-'+e;
+      }
+
+      // Brief CC for card display
+      var briefCC = p.data.brief_cc || p.result.chiefcomplaint || '';
+      var fullText = p.data.full_text || '';
+
+      var details='';
+      if(isExp){
+        var probs=p.result.probabilities.map(function(pr,i){return '<div class="prob-row"><span class="prob-label">ESI '+(i+1)+'</span><div class="prob-track"><div class="prob-fill esi-color-'+(i+1)+'" style="width:'+pr*100+'%"></div></div><span class="prob-pct">'+(pr*100).toFixed(0)+'%</span></div>'}).join('');
+        var classifText=ESI[e].desc+' ('+ESI[e].time+')';
+        if(isUncertain){
+          var lo=Math.min(e,e2), hi=Math.max(e,e2);
+          classifText=ESI[lo].desc+' / '+ESI[hi].desc;
+        }
+        var marginRow=isUncertain?'<div class="detail-row"><span class="detail-label">Margin</span><span class="detail-value" style="color:#FBBF24;font-weight:700">'+(p.result.margin*100).toFixed(1)+'% <span class="uncertainty-tag">LOW CONFIDENCE</span></span></div>':'';
+        details='<div class="card-details"><div class="details-grid">'+
+          '<div><div class="detail-section-title">Clinical Data</div><div class="detail-box">'+
+            '<div class="detail-row"><span class="detail-label">Pain</span><span class="detail-value">'+p.data.pain+'/10</span></div>'+
+            '<div class="detail-row"><span class="detail-label">Temperature</span><span class="detail-value">'+(TEMP_L[p.data.temperature]||'—')+'</span></div>'+
+            '<div class="detail-row"><span class="detail-label">Heart rate</span><span class="detail-value">'+(HR_L[p.data.heartrate]||'—')+'</span></div>'+
+            '<div class="detail-row"><span class="detail-label">Breathing</span><span class="detail-value">'+(RR_L[p.data.resprate]||'—')+'</span></div>'+
+            '<div class="detail-row"><span class="detail-label">Age</span><span class="detail-value">'+p.data.edad+' y/o</span></div>'+
+            '<div class="detail-row"><span class="detail-label">Sex</span><span class="detail-value">'+(p.data.sexo==='M'?'Male':'Female')+'</span></div>'+
+          '</div></div>'+
+          '<div><div class="detail-section-title">AI Analysis</div><div class="detail-box">'+
+            '<div class="detail-row"><span class="detail-label">Chief Complaint</span><span class="detail-value" style="font-style:italic">'+p.result.chiefcomplaint+'</span></div>'+
+            '<div class="detail-row"><span class="detail-label">CC Source</span><span class="detail-value">'+(p.result.cc_source||'—')+'</span></div>'+
+            '<div class="detail-row"><span class="detail-label">Urgency Score</span><span class="detail-value '+scoreColor(sc)+'" style="font-weight:700">'+sc.toFixed(2)+'</span></div>'+
+            '<div class="detail-row"><span class="detail-label">Classification</span><span class="detail-value conf-'+e+'" style="font-weight:700">'+classifText+'</span></div>'+
+            marginRow+
+            '<div class="prob-bar-container"><span class="detail-label">Probabilities</span>'+probs+'</div>'+
+          '</div></div>'+
+        '</div>'+
+        (isUncertain?'<div class="desc-box" style="background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.2)"><strong>⚠ Low confidence:</strong> The model is uncertain between these two levels. Use your clinical judgement to decide.</div>':'')+
+        '<div class="desc-box"><strong>📋 Patient\'s main problem:</strong> '+briefCC+'</div>'+
+        ((p.result.symptoms&&p.result.symptoms.length>0)?'<div class="desc-box-green"><strong>🔍 Detected symptoms:</strong> '+p.result.symptoms.join(' · ')+'</div>':'')+
+        (fullText?'<div class="desc-box-blue"><strong>📝 Additional details:</strong> '+fullText+'</div>':'')+
+        '<button class="btn-attended" onclick="event.stopPropagation();dismiss(\''+p.id+'\')">✓ Mark as seen</button><div style="clear:both"></div></div>';
+      }
+      var hrDots={1:'●',2:'●●',3:'●●●',4:'●●●●',5:'●●●●●'};
+      return '<div class="patient-card"><div class="card-row" onclick="toggleExpand(\''+p.id+'\')">'+
+        '<div class="pos-badge">#'+(idx+1)+'</div>'+
+        '<div class="'+badgeClass+'"><div class="esi-text">ESI</div><div class="esi-num">'+badgeNum+'</div></div>'+
+        '<div class="card-info">'+
+          '<div class="card-name">'+p.data.nombre+'<span class="card-demo">'+p.data.edad+'y/o · '+(p.data.sexo==='M'?'♂':'♀')+'</span>'+(isUncertain?'<span class="uncertainty-tag">UNCERTAIN</span>':'')+'</div>'+
+          '<div class="card-symptoms">'+briefCC+'</div>'+
+          (fullText?'<div class="card-desc">'+fullText.substring(0,90)+(fullText.length>90?'...':'')+'</div>':'')+'</div>'+
+        '<div class="card-score"><div class="score-val '+scoreColor(sc)+'">'+sc.toFixed(2)+'</div><div class="score-label">Urgency</div></div>'+
+        '<div class="card-vitals">'+
+          '<div class="vital-pill"><div class="vital-label">Pain</div><div class="vital-value '+painClass+'">'+p.data.pain+'</div></div>'+
+          '<div class="vital-pill"><div class="vital-label">HR</div><div class="vital-value '+hrClass+'">'+(hrDots[p.data.heartrate]||'—')+'</div></div>'+
+          '<div class="vital-pill"><div class="vital-label">RR</div><div class="vital-value '+rrClass+'">'+(hrDots[p.data.resprate]||'—')+'</div></div>'+
+        '</div>'+
+        '<div class="card-arrow">'+(isExp?'▲':'▼')+'</div>'+
+      '</div>'+details+'</div>';
+    }).join('');
+  }
+  var counts={1:0,2:0,3:0,4:0,5:0};state.patients.forEach(function(p){counts[p.result.esi_level]++});
+  var filters='<button onclick="setFilter(0)" style="padding:7px 16px;border-radius:20px;border:2px solid '+(state.filter===0?'#60A5FA':'#334155')+';background:'+(state.filter===0?'rgba(96,165,250,.1)':'transparent')+';color:'+(state.filter===0?'#60A5FA':'#94A3B8')+';font-size:14px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif">All ('+state.patients.length+')</button>';
+  [1,2,3,4,5].forEach(function(l){
+    filters+='<button onclick="setFilter('+l+')" style="padding:7px 16px;border-radius:20px;border:2px solid '+(state.filter===l?'#60A5FA':'#334155')+';background:'+(state.filter===l?'rgba(96,165,250,.1)':'transparent')+';color:'+(state.filter===l?'#60A5FA':'#94A3B8')+';font-size:14px;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif">'+ESI[l].icon+' ESI '+l+' ('+counts[l]+')</button>';
+  });
+  return '<div class="screen-nurse">'+
+    '<div class="nurse-header"><div class="nurse-header-left"><span style="font-size:26px">🩺</span><div><div class="title">Nurse Dashboard</div><div class="subtitle">'+state.patients.length+' patients waiting · Sorted by urgency score</div></div></div>'+
+    '<button class="btn-switch" onclick="goTo(\'select\')">← Switch view</button></div>'+
+    '<div style="padding:12px 28px;background:#1E293B;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid #334155">'+filters+'</div>'+
+    '<div class="patient-list">'+cards+'</div></div>';
+}
+
+function goTo(v){if(state.polling){clearInterval(state.polling);state.polling=null}state.view=v;if(v==='nurse'){fetchPatients();state.polling=setInterval(fetchPatients,3000)}render()}
+async function fetchPatients(){try{var r=await fetch(API_URL+'/pacientes');var j=await r.json();if(j.patients){state.patients=j.patients;if(state.view==='nurse')render()}}catch(e){}}
+function setField(k,v){state.formData[k]=v;render()}
+function nextStep(){
+  saveCurrentInputs();
+  if(state.formStep===1){
+    if(state.freeTextMode){
+      state.formData.brief_cc='';
+    } else {
+      if(state.umlsTags.length>0){
+        state.formData.brief_cc=state.umlsTags.join(', ');
+      } else if(state.umlsQuery.trim()){
+        state.formData.brief_cc=state.umlsQuery.trim();
+      }
+    }
+    state.umlsSuggestions=[];
+  }
+  state.formStep++;render();
+}
+function prevStep(){
+  saveCurrentInputs();
+  state.formStep--;render();
+}
+function resetForm(){state.formStep=0;state.formData={nombre:'',edad:'',sexo:'',brief_cc:'',full_text:'',pain:null,temperature:null,heartrate:null,resprate:null};state.umlsTags=[];state.umlsSuggestions=[];state.umlsQuery='';state.freeTextMode=false;state.freetext_cc='';state.view='patient';render()}
+function toggleFreeText(){state.freeTextMode=!state.freeTextMode;render()}
+function setFilter(f){state.filter=f;render()}
+function toggleExpand(id){state.expandedId=state.expandedId===id?null:id;render()}
+async function dismiss(id){try{await fetch(API_URL+'/pacientes/'+id,{method:'DELETE'})}catch(e){}state.patients=state.patients.filter(function(p){return p.id!==id});state.expandedId=null;render()}
+async function submitForm(){
+  state.loading=true;render();
+  saveCurrentInputs();
+  var d=state.formData;
+  // In free text mode, freetext_cc is the main text for NER
+  var finalFullText=state.freeTextMode?state.freetext_cc:(d.full_text||'');
+  var finalBriefCC=d.brief_cc;
+  var body={nombre:d.nombre,edad:parseInt(d.edad),sexo:d.sexo,brief_cc:finalBriefCC,full_text:finalFullText,pain:d.pain,temperature:d.temperature,heartrate:d.heartrate,resprate:d.resprate};
+  try{
+    var r=await fetch(API_URL+'/triaje',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var j=await r.json();
+    if(j.success){state.loading=false;state.view='success'}else throw new Error(j.error||'Unknown error');
+  }catch(e){console.error(e);alert('Error connecting to server. Make sure api.py is running.');state.loading=false}
+  render();
+}
+function bindEvents(){
+  var nombre=document.getElementById('f-nombre');
+  if(nombre)nombre.addEventListener('input',function(e){state.formData.nombre=e.target.value});
+  var edad=document.getElementById('f-edad');
+  if(edad)edad.addEventListener('input',function(e){state.formData.edad=e.target.value});
+  var fulltext=document.getElementById('f-full-text');
+  if(fulltext)fulltext.addEventListener('input',function(e){state.formData.full_text=e.target.value});
+  var freetextcc=document.getElementById('f-freetext-cc');
+  if(freetextcc)freetextcc.addEventListener('input',function(e){state.freetext_cc=e.target.value});
+  var umlsInput=document.getElementById('f-umls-search');
+  if(umlsInput){
+    umlsInput.addEventListener('input',function(e){
+      state.umlsQuery=e.target.value;
+      debounceSearch(e.target.value);
+    });
+    umlsInput.addEventListener('keydown',function(e){
+      if(e.key==='Enter'&&state.umlsQuery.trim().length>=2){
+        e.preventDefault();
+        // If suggestions visible, select first one
+        if(state.umlsSuggestions.length>0){
+          selectSuggestion(0);
+        } else {
+          // Add raw text as tag
+          addRawTag(state.umlsQuery.trim());
+        }
+      }
+    });
+    umlsInput.focus();
+  }
+}
+
+// Close UMLS suggestions when clicking outside (registered once)
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.umls-container')&&state.umlsSuggestions.length>0){
+    state.umlsSuggestions=[];
+    var c=document.querySelector('.umls-suggestions');
+    if(c)c.classList.remove('visible');
+  }
+});
+
+var searchTimer=null;
+function debounceSearch(query){
+  clearTimeout(searchTimer);
+  if(query.trim().length<2){
+    state.umlsSuggestions=[];state.umlsLoading=false;
+    var c=document.querySelector('.umls-suggestions');
+    if(c)c.classList.remove('visible');
+    return;
+  }
+  state.umlsLoading=true;
+  var c=document.querySelector('.umls-suggestions');
+  if(c){c.innerHTML='<div class="umls-loading">Searching UMLS...</div>';c.classList.add('visible')}
+  searchTimer=setTimeout(function(){fetchSuggestions(query.trim())},300);
+}
+
+async function fetchSuggestions(query){
+  try{
+    var r=await fetch(API_URL+'/suggest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:query,top_k:6})});
+    var j=await r.json();
+    state.umlsSuggestions=j.suggestions||[];
+    state.umlsLoading=false;
+  }catch(e){state.umlsSuggestions=[];state.umlsLoading=false}
+  // Only update suggestions dropdown, not the whole page
+  updateSuggestionsDropdown();
+}
+
+function updateSuggestionsDropdown(){
+  var container=document.querySelector('.umls-suggestions');
+  if(!container)return;
+  var sugList='';
+  if(state.umlsLoading){sugList='<div class="umls-loading">Searching UMLS...</div>'}
+  else if(state.umlsSuggestions.length>0){
+    sugList=state.umlsSuggestions.map(function(sg,i){
+      var typeShort=sg.semantic_type.replace('Sign or Symptom','Symptom').replace('Disease or Syndrome','Disease').replace('Injury or Poisoning','Injury').replace('Mental or Behavioral Dysfunction','Mental');
+      return '<div class="umls-suggestion" onclick="selectSuggestion('+i+')"><span class="sug-name">'+sg.display_name+'</span><span class="sug-type">'+typeShort+'</span><span class="sug-score">'+Math.round(sg.score*100)+'%</span></div>'
+    }).join('');
+  }
+  container.innerHTML=sugList;
+  var hasInput=state.umlsQuery.length>=2;
+  if(hasInput&&(state.umlsSuggestions.length>0||state.umlsLoading)){
+    container.classList.add('visible');
+  } else {
+    container.classList.remove('visible');
+  }
+}
+
+function selectSuggestion(idx){
+  var sug=state.umlsSuggestions[idx];
+  if(sug&&!state.umlsTags.includes(sug.display_name)){
+    state.umlsTags.push(sug.display_name);
+  }
+  state.umlsQuery='';
+  state.umlsSuggestions=[];
+  var inp=document.getElementById('f-umls-search');
+  if(inp)inp.value='';
+  render();
+  inp=document.getElementById('f-umls-search');
+  if(inp)inp.focus();
+}
+
+function addRawTag(text){
+  if(text&&!state.umlsTags.includes(text)){
+    text=text.charAt(0).toUpperCase()+text.slice(1);
+    state.umlsTags.push(text);
+  }
+  state.umlsQuery='';
+  state.umlsSuggestions=[];
+  var inp=document.getElementById('f-umls-search');
+  if(inp)inp.value='';
+  render();
+  inp=document.getElementById('f-umls-search');
+  if(inp)inp.focus();
+}
+
+function removeTag(idx){
+  state.umlsTags.splice(idx,1);
+  render();
+}
+render();
+if(state.view==='nurse'){fetchPatients();state.polling=setInterval(fetchPatients,3000)}
+</script>
+</body>
+</html>

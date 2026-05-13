@@ -1,0 +1,14 @@
+# modelos
+*.pt
+*.safetensors
+
+# datasets
+*.csv
+*.txt
+
+# checkpoints
+checkpoint-*/
+
+# cache python
+__pycache__/
+*.pyc
