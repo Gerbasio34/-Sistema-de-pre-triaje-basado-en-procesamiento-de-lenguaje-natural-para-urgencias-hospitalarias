@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+torch
+transformers
+torchcrf
+numpy
+scikit-learn
+pandas
+pytorch-crf

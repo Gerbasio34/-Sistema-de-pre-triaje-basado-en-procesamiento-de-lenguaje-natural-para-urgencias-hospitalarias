@@ -5,6 +5,7 @@
 # datasets
 *.csv
 *.txt
+!requirements.txt
 
 # checkpoints
 checkpoint-*/
