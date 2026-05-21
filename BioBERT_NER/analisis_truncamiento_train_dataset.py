@@ -7,7 +7,7 @@
 import statistics
 from collections import Counter
 
-input_file = "train_dataset.txt"
+input_file = "train_dataset_combined_dedup.txt"
 max_tokens = 128
 
 
@@ -136,4 +136,11 @@ def analyze_truncation(sentences, max_tokens=max_tokens):
 if __name__ == "__main__":
     print(f"leyendo {input_file}...")
     sentences = read_bio_file(input_file)
+
+    lengths = [len(s) for s in sentences]
+    print(f"longitud media: {statistics.mean(lengths):.1f} tokens")
+    print(f"longitud mediana: {statistics.median(lengths):.1f} tokens")
+    print(f"longitud maxima: {max(lengths)} tokens")
+    print(f"percentil 95: {sorted(lengths)[int(len(lengths)*0.95)]} tokens")
+
     analyze_truncation(sentences)

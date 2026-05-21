@@ -4,7 +4,6 @@
 # dos cotas: superior (cc+esi identicos) e inferior (cc+vitales similares+esi identicos)
 
 # input:  triage_with_demographics.csv
-# output: redirigir con > analisis_solapamiento_pacientes.txt
 
 import pandas as pd
 import numpy as np

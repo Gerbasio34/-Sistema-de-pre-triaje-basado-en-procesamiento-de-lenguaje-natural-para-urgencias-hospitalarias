@@ -136,6 +136,22 @@ class SapBERTCrossAttentionModel(nn.Module):
 # 5. NER POST-PROCESSING
 
 def fix_tokenizer_contractions(text):
+
+    text = re.sub(r"\bcan\s+'\s+t\b", "cannot", text)
+    text = re.sub(r"\bdon\s+'\s+t\b", "do not", text)
+    text = re.sub(r"\bdoesn\s+'\s+t\b", "does not", text)
+    text = re.sub(r"\bdidn\s+'\s+t\b", "did not", text)
+    text = re.sub(r"\bwon\s+'\s+t\b", "will not", text)
+    text = re.sub(r"\bwouldn\s+'\s+t\b", "would not", text)
+    text = re.sub(r"\bshouldn\s+'\s+t\b", "should not", text)
+    text = re.sub(r"\bisn\s+'\s+t\b", "is not", text)
+    text = re.sub(r"\baren\s+'\s+t\b", "are not", text)
+    text = re.sub(r"\bwasn\s+'\s+t\b", "was not", text)
+    text = re.sub(r"\bweren\s+'\s+t\b", "were not", text)
+    text = re.sub(r"\bhasn\s+'\s+t\b", "has not", text)
+    text = re.sub(r"\bhaven\s+'\s+t\b", "have not", text)
+    text = re.sub(r"\bcouldn\s+'\s+t\b", "could not", text)
+
     for p, r in [("can't","cannot"),("don't","do not"),("doesn't","does not"),
                  ("didn't","did not"),("won't","will not"),("wouldn't","would not"),
                  ("shouldn't","should not"),("isn't","is not"),("aren't","are not"),

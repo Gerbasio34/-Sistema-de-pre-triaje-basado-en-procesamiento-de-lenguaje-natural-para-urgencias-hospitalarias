@@ -27,7 +27,7 @@ from torchcrf import CRF
 import json
 
 # Configuración
-bio_file = "train_dataset.txt"
+bio_file = "train_dataset_combined_dedup.txt"
 model_name = "dmis-lab/biobert-base-cased-v1.2"
 output_dir = "./biobert_sintomas_ner_v4_crf"
 

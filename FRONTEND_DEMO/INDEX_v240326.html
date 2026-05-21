@@ -392,8 +392,13 @@ function bindEvents(){
   if(edad)edad.addEventListener('input',function(e){state.formData.edad=e.target.value});
   var fulltext=document.getElementById('f-full-text');
   if(fulltext)fulltext.addEventListener('input',function(e){state.formData.full_text=e.target.value});
-  var freetextcc=document.getElementById('f-freetext-cc');
-  if(freetextcc)freetextcc.addEventListener('input',function(e){state.freetext_cc=e.target.value});
+  var freetextcc = document.getElementById('f-freetext-cc');
+  if(freetextcc) freetextcc.addEventListener('input', function(e) {
+      state.freetext_cc = e.target.value;
+      // reactivar boton Next sin perder el foco
+      var btn = document.querySelector('.btn-next');
+      if(btn) btn.disabled = e.target.value.length < 5;
+  });
   var umlsInput=document.getElementById('f-umls-search');
   if(umlsInput){
     umlsInput.addEventListener('input',function(e){
