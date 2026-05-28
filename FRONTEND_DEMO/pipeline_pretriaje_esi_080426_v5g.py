@@ -378,9 +378,12 @@ def run_pipeline(text_en, pain, temperature, heartrate, resprate, models,
             'full_text': text_en, 'processing_time': round(time.time() - t0, 2),
         }
 
-    symptoms = extract_and_clean_symptoms(
+    if brief_cc is None or not brief_cc.strip():
+        symptoms = extract_and_clean_symptoms(
         text_en, models['ner_model'], models['ner_tokenizer'],
         models['device'], verbose=verbose)
+    else:
+        symptoms = []
 
     if brief_cc is not None and brief_cc.strip():
         chiefcomplaint = brief_cc.strip().lower()

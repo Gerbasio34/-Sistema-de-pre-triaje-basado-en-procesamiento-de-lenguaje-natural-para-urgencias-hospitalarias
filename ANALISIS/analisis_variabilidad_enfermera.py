@@ -262,3 +262,45 @@ print("chief complaint, pain, temp, hr, rr, esi2, esi3, n_total")
 for cc, pain, temp, hr, rr, n2, n3, total in resultados_23[:15]:
     cc_short = cc[:29] if len(cc) > 29 else cc
     print(f"  {cc_short:<29} {pain:>5.0f} {temp:>6.1f} {hr:>5.0f} {rr:>5.0f} {n2:>6} {n3:>6} {total:>6}")
+
+
+# --- seccion 6: frontera ESI 1/2 en grupos discordantes ---
+print("\n--- seccion 6: frontera ESI 1/2 en grupos discordantes ---")
+
+grupos_frontera_12 = []
+for key, row in grupos_multi.iterrows():
+    niveles = row["niveles"]
+    if 1 in niveles and 2 in niveles:
+        grupos_frontera_12.append((key, row))
+
+print(f"\ngrupos con discordancia ESI 1/2: {len(grupos_frontera_12)}")
+
+resultados_12 = []
+total_casos_12 = 0
+for (cc, pain, temp, hr, rr), row in grupos_frontera_12:
+    subset = df_bin[
+        (df_bin["chiefcomplaint"] == cc) &
+        (df_bin["pain_bin"] == pain) &
+        (df_bin["temp_bin"] == temp) &
+        (df_bin["hr_bin"] == hr) &
+        (df_bin["rr_bin"] == rr)
+    ]["acuity"]
+    n1 = int((subset == 1).sum())
+    n2 = int((subset == 2).sum())
+    n_total = int(row["n_casos"])
+    total_casos_12 += n_total
+    resultados_12.append((cc, float(pain), float(temp)/2, float(hr)*5, float(rr)*2, n1, n2, n_total))
+
+print(f"casos en esos grupos: {total_casos_12} ({total_casos_12/len(df)*100:.1f}% del dataset)")
+
+resultados_12.sort(key=lambda x: -x[7])
+print("\ntop 15 grupos con discordancia ESI 1/2 (mayor numero de casos):")
+print("chief complaint, pain, temp, hr, rr, esi1, esi2, n_total")
+for cc, pain, temp, hr, rr, n1, n2, total in resultados_12[:15]:
+    cc_short = cc[:29] if len(cc) > 29 else cc
+    print(f"  {cc_short:<29} {pain:>5.0f} {temp:>6.1f} {hr:>5.0f} {rr:>5.0f} {n1:>6} {n2:>6} {total:>6}")
+
+esi1_en_grupos = sum(n1 for cc, pain, temp, hr, rr, n1, n2, total in resultados_12)
+total_esi1 = df[df['acuity'] == 1].shape[0]
+print(f"\ncasos ESI 1 en grupos discordantes ESI 1/2: {esi1_en_grupos} ({esi1_en_grupos/total_esi1*100:.1f}% de todos los ESI 1)")
+print(f"casos ESI 2 en grupos discordantes ESI 1/2: {sum(n2 for cc, pain, temp, hr, rr, n1, n2, total in resultados_12)}")
